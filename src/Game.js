@@ -4,11 +4,10 @@ import Dice from "./reusables/Dice";
 export default class Game extends Phaser.Scene {
   constructor() {
     super("game");
-    this.dice1 = new Dice(this, "dice1");
+    this.dice = new Dice(this, "dice", 5);
     this.resultText = undefined;
-    this.result = 0;
-    this.diceDisplay = undefined;
-    this.diceResult = undefined;
+    this.diceContainer = undefined;
+    this.diceArray = undefined;
   }
 
   preload() {
@@ -20,13 +19,10 @@ export default class Game extends Phaser.Scene {
   }
 
   create() {
+    this.add.image(200, 300, "bg");
+
     const startButton = this.add
-      .text(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY + 100,
-        "Roll",
-        {}
-      )
+      .text(200, 550, "Roll", {})
       .setOrigin(0.5)
       .setPadding(10)
       .setStyle({ backgroundColor: "#111" })
@@ -36,20 +32,48 @@ export default class Game extends Phaser.Scene {
       .on("pointerout", () => startButton.setStyle({ fill: "#FFF" }));
 
     this.resultText = this.add
-      .text(200, 300, "Roll the dice", {
+      .text(200, 475, "Roll the dice", {
         fontFamily: "monospace",
       })
       .setOrigin(0.5);
+
+    this.diceContainer = this.add.container();
+
+    this.input.on("gameobjectdown", (pointer, gameObject) => {
+      if (gameObject.name.includes("dice")) {
+        const diceKept = this.dice.keepDice(gameObject);
+        if (diceKept.keep) {
+          gameObject.setTexture("dice", diceKept.value + 5);
+        } else {
+          gameObject.setTexture("dice", diceKept.value - 1);
+        }
+      }
+    });
   }
 
-  update() {}
-
   rollDice() {
-    this.result = this.dice1.roll();
     this.resultText.text = "";
-    //this.resultText.text = `The result is ${this.result}`;
-    this.diceDisplay = this.add
-      .sprite(200, 300, "dice", this.result - 1)
-      .setScale(0.3);
+
+    this.diceArray = this.dice.roll();
+
+    for (let i = 0; i < 5; i++) {
+      this.diceContainer.add(
+        this.add
+          .sprite(
+            60 + 70 * i,
+            475,
+            "dice",
+            this.diceArray[i].keep
+              ? this.diceArray[i]["value"] + 5
+              : this.diceArray[i]["value"] - 1
+          )
+          .setScale(0.3)
+          .setName(`dice${i}`)
+          .setState(this.diceArray[i]["keep"] ? "keep" : "roll")
+          .setInteractive({ useHandCursor: true })
+      );
+    }
+
+    this.diceContainer.removeAll();
   }
 }

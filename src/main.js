@@ -6,12 +6,6 @@ const config = {
   parent: "app",
   width: 400,
   height: 600,
-  physics: {
-    default: "arcade",
-    arcade: {
-      gravity: { y: 200 },
-    },
-  },
   scene: [Game],
 };
 
